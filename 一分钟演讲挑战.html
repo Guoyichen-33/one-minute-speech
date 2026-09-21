@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一分钟演讲挑战</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: #f5f6f8;
+    color: #202124;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .app {
+    width: min(92vw, 760px);
+    min-height: 620px;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.08);
+    padding: 42px;
+    display: flex;
+    flex-direction: column;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  .brand { font-size: 18px; font-weight: 700; }
+  .step { font-size: 13px; color: #8a8f98; }
+  .screen {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .screen.active { display: flex; }
+  h1 {
+    margin: 0 0 14px;
+    font-size: clamp(30px, 6vw, 48px);
+    letter-spacing: -1px;
+  }
+  .subtitle {
+    max-width: 560px;
+    color: #70757d;
+    line-height: 1.7;
+    margin: 0 0 34px;
+  }
+  .keyword {
+    min-height: 150px;
+    width: 100%;
+    max-width: 560px;
+    border: 2px dashed #d9dce1;
+    border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+    margin-bottom: 28px;
+    transition: .2s;
+  }
+  .keyword.show {
+    border-style: solid;
+    border-color: #202124;
+  }
+  .keyword-text {
+    font-size: clamp(32px, 7vw, 58px);
+    font-weight: 800;
+  }
+  .hint {
+    font-size: 14px;
+    color: #9297a0;
+    margin-top: 12px;
+  }
+  button {
+    border: 0;
+    border-radius: 12px;
+    padding: 14px 25px;
+    font-size: 16px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: transform .12s, opacity .12s, background .12s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:active { transform: translateY(0); }
+  .primary { background: #202124; color: white; }
+  .secondary { background: #eef0f3; color: #202124; }
+  .danger { background: #e5484d; color: white; }
+  .buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .timer-label {
+    font-size: 15px;
+    color: #737983;
+    margin-bottom: 12px;
+  }
+  .timer {
+    font-size: clamp(72px, 18vw, 150px);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    letter-spacing: -5px;
+    margin: 8px 0 28px;
+  }
+  .research-keyword {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 24px;
+  }
+  .progress-wrap {
+    width: min(100%, 520px);
+    margin: 0 auto 28px;
+  }
+  .progress-slider {
+    width: 100%;
+    height: 8px;
+    margin: 0;
+    accent-color: #202124;
+    cursor: pointer;
+  }
+  .progress-slider::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 99px;
+    background: #eceef1;
+  }
+  .progress-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    margin-top: -6px;
+    border-radius: 50%;
+    background: #202124;
+    cursor: grab;
+  }
+  .progress-slider::-webkit-slider-thumb:active { cursor: grabbing; }
+  .progress-slider::-moz-range-track {
+    height: 8px;
+    border-radius: 99px;
+    background: #eceef1;
+  }
+  .progress-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 50%;
+    background: #202124;
+    cursor: grab;
+  }
+  .speech-note {
+    max-width: 520px;
+    color: #727780;
+    line-height: 1.7;
+    margin-bottom: 25px;
+  }
+  .result {
+    width: 100%;
+    max-width: 540px;
+    background: #f7f8fa;
+    border-radius: 18px;
+    padding: 25px;
+    margin: 15px 0 28px;
+  }
+  .result strong { font-size: 26px; }
+  .small { font-size: 13px; color: #858a93; margin-top: 8px; }
+  .footer {
+    text-align: center;
+    color: #b0b4bb;
+    font-size: 12px;
+    margin-top: 25px;
+  }
+  @media (max-width: 600px) {
+    .app { min-height: 100vh; width: 100%; border-radius: 0; padding: 28px 20px; }
+    .top { margin-bottom: 15px; }
+  }
+</style>
+</head>
+
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">一分钟演讲挑战</div>
+    <div class="step" id="stepText">准备开始</div>
+  </div>
+
+  <!-- 0. 开始 -->
+  <section class="screen active" id="startScreen">
+    <h1>一分钟演讲挑战</h1>
+    <p class="subtitle">
+      随机抽取一个概念名词，先用 15 分钟检索和学习，再用 1 分钟把你刚刚学到的内容讲出来。
+    </p>
+    <div class="buttons">
+      <button class="primary" onclick="drawKeyword()">抽取关键词</button>
+    </div>
+  </section>
+
+  <!-- 1. 抽词 -->
+  <section class="screen" id="drawScreen">
+    <h1>你的挑战词</h1>
+    <div class="keyword" id="keywordBox">
+      <div class="keyword-text" id="keywordText">准备抽取</div>
+    </div>
+    <p class="hint">抽取后，你将进入 15 分钟信息检索与学习阶段。</p>
+    <div class="buttons">
+      <button class="secondary" onclick="drawKeyword()">重新抽取</button>
+      <button class="primary" onclick="goResearch()">开始 15 分钟学习</button>
+    </div>
+  </section>
+
+  <!-- 2. 15分钟学习 -->
+  <section class="screen" id="researchScreen">
+    <div class="timer-label">信息检索与学习</div>
+    <div class="research-keyword" id="researchKeyword"></div>
+    <div class="timer" id="researchTimer">15:00</div>
+    <div class="progress-wrap">
+      <input class="progress-slider" id="researchSlider" type="range" min="0" max="900" value="0"
+             oninput="seekResearch(this.value)" aria-label="调整学习倒计时进度">
+    </div>
+    <p class="speech-note">
+      现在可以自由搜索、阅读、整理资料。<br>
+      计时结束后，将自动进入一分钟演讲挑战。
+    </p>
+    <div class="buttons">
+      <button class="primary" id="researchBtn" onclick="toggleResearch()">开始学习计时</button>
+      <button class="secondary" onclick="resetToStart()">重新开始</button>
+    </div>
+  </section>
+
+  <!-- 3. 过渡 -->
+  <section class="screen" id="transitionScreen">
+    <h1>学习时间结束</h1>
+    <p class="subtitle">
+      现在不要继续查资料。<br>
+      接下来，用你刚刚获得的信息完成一分钟演讲。
+    </p>
+    <div class="result">
+      <div>你的概念</div>
+      <strong id="transitionKeyword"></strong>
+    </div>
+    <button class="primary" onclick="startSpeech()">开始一分钟演讲</button>
+  </section>
+
+  <!-- 4. 一分钟演讲 -->
+  <section class="screen" id="speechScreen">
+    <div class="timer-label">一分钟演讲</div>
+    <div class="research-keyword" id="speechKeyword"></div>
+    <div class="timer" id="speechTimer">01:00</div>
+    <div class="progress-wrap">
+      <input class="progress-slider" id="speechSlider" type="range" min="0" max="60" value="0"
+             oninput="seekSpeech(this.value)" aria-label="调整演讲倒计时进度">
+    </div>
+    <p class="speech-note">
+      尽可能清楚地解释这个概念：<br>
+      它是什么？为什么重要？你刚刚学到了什么？
+    </p>
+    <div class="buttons">
+      <button class="primary" id="speechBtn" onclick="toggleSpeech()">开始演讲计时</button>
+      <button class="secondary" onclick="resetToStart()">结束挑战</button>
+    </div>
+  </section>
+
+  <!-- 5. 完成 -->
+  <section class="screen" id="finishScreen">
+    <h1>挑战完成</h1>
+    <p class="subtitle">你刚刚完成了一次「学习 → 理解 → 输出」的训练。</p>
+    <div class="result">
+      <div>本次挑战概念</div>
+      <strong id="finishKeyword"></strong>
+      <div class="small">15 分钟学习 + 1 分钟演讲</div>
+    </div>
+    <div class="buttons">
+      <button class="primary" onclick="drawKeyword()">再来一次</button>
+      <button class="secondary" onclick="resetToStart()">返回首页</button>
+    </div>
+  </section>
+
+  <div class="footer">Learn it · Understand it · Explain it</div>
+</div>
+
+<script>
+const keywords = [
+  "机会成本", "沉没成本", "边际效用", "信息茧房", "路径依赖",
+  "规模经济", "帕累托最优", "博弈论", "网络效应", "锚定效应",
+  "确认偏误", "幸存者偏差", "长尾理论", "复利效应", "黑天鹅",
+  "灰犀牛", "第一性原理", "马太效应", "囚徒困境", "公共物品",
+  "外部性", "逆向选择", "道德风险", "机会窗口", "沉浸式学习",
+  "认知负荷", "知识迁移", "刻意练习", "费曼学习法", "临界点"
+];
+
+let currentKeyword = "";
+let researchSeconds = 15 * 60;
+let speechSeconds = 60;
+let researchInterval = null;
+let speechInterval = null;
+let researchRunning = false;
+let speechRunning = false;
+
+function showScreen(id, step) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.getElementById("stepText").textContent = step;
+}
+
+function drawKeyword() {
+  clearAllTimers();
+  showScreen("drawScreen", "① 抽取概念");
+  const box = document.getElementById("keywordBox");
+  const text = document.getElementById("keywordText");
+  box.classList.remove("show");
+  text.textContent = "抽取中…";
+
+  let count = 0;
+  const animation = setInterval(() => {
+    text.textContent = keywords[Math.floor(Math.random() * keywords.length)];
+    count++;
+    if (count >= 12) {
+      clearInterval(animation);
+      currentKeyword = keywords[Math.floor(Math.random() * keywords.length)];
+      text.textContent = currentKeyword;
+      box.classList.add("show");
+    }
+  }, 80);
+}
+
+function goResearch() {
+  researchSeconds = 15 * 60;
+  researchRunning = false;
+  document.getElementById("researchKeyword").textContent = currentKeyword;
+  document.getElementById("researchBtn").textContent = "开始学习计时";
+  document.getElementById("researchSlider").value = 0;
+  updateResearchDisplay();
+  showScreen("researchScreen", "② 15分钟学习");
+}
+
+function toggleResearch() {
+  if (researchRunning) {
+    pauseResearch();
+  } else {
+    startResearch();
+  }
+}
+
+function startResearch() {
+  researchRunning = true;
+  document.getElementById("researchBtn").textContent = "暂停计时";
+  researchInterval = setInterval(() => {
+    researchSeconds--;
+    updateResearchDisplay();
+    if (researchSeconds <= 0) {
+      clearInterval(researchInterval);
+      researchRunning = false;
+      goTransition();
+    }
+  }, 1000);
+}
+
+function pauseResearch() {
+  clearInterval(researchInterval);
+  researchRunning = false;
+  document.getElementById("researchBtn").textContent = "继续计时";
+}
+
+function updateResearchDisplay() {
+  document.getElementById("researchTimer").textContent = formatTime(researchSeconds);
+  document.getElementById("researchSlider").value = (15 * 60) - researchSeconds;
+}
+
+function seekResearch(value) {
+  researchSeconds = (15 * 60) - Number(value);
+  updateResearchDisplay();
+}
+
+function goTransition() {
+  document.getElementById("transitionKeyword").textContent = currentKeyword;
+  showScreen("transitionScreen", "③ 准备输出");
+}
+
+function startSpeech() {
+  speechSeconds = 60;
+  speechRunning = false;
+  document.getElementById("speechKeyword").textContent = currentKeyword;
+  document.getElementById("speechBtn").textContent = "开始演讲计时";
+  document.getElementById("speechSlider").value = 0;
+  updateSpeechDisplay();
+  showScreen("speechScreen", "④ 一分钟演讲");
+}
+
+function toggleSpeech() {
+  if (speechRunning) {
+    pauseSpeech();
+  } else {
+    runSpeech();
+  }
+}
+
+function runSpeech() {
+  speechRunning = true;
+  document.getElementById("speechBtn").textContent = "暂停计时";
+  speechInterval = setInterval(() => {
+    speechSeconds--;
+    updateSpeechDisplay();
+    if (speechSeconds <= 0) {
+      clearInterval(speechInterval);
+      speechRunning = false;
+      finishChallenge();
+    }
+  }, 1000);
+}
+
+function pauseSpeech() {
+  clearInterval(speechInterval);
+  speechRunning = false;
+  document.getElementById("speechBtn").textContent = "继续演讲计时";
+}
+
+function updateSpeechDisplay() {
+  document.getElementById("speechTimer").textContent = formatTime(speechSeconds);
+  document.getElementById("speechSlider").value = 60 - speechSeconds;
+}
+
+function seekSpeech(value) {
+  speechSeconds = 60 - Number(value);
+  updateSpeechDisplay();
+}
+
+function finishChallenge() {
+  document.getElementById("finishKeyword").textContent = currentKeyword;
+  showScreen("finishScreen", "⑤ 挑战完成");
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+  const s = (seconds % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
+
+function clearAllTimers() {
+  clearInterval(researchInterval);
+  clearInterval(speechInterval);
+  researchRunning = false;
+  speechRunning = false;
+}
+
+function resetToStart() {
+  clearAllTimers();
+  currentKeyword = "";
+  researchSeconds = 15 * 60;
+  speechSeconds = 60;
+  showScreen("startScreen", "准备开始");
+}
+</script>
+</body>
+</html>
